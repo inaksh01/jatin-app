@@ -1,6 +1,6 @@
-streamlit
-ultralytics==8.1.0
-opencv-python-headless==4.7.0.72
-numpy
-Pillow
-requests
+streamlit>=1.28.0
+ultralytics>=8.0.0
+numpy>=1.23.0
+Pillow>=9.0.0
+gdown>=4.7.1
+opencv-python>=4.7.0
