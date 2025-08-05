@@ -12,7 +12,7 @@ from io import BytesIO
 MODEL_PATH = "best.pt"
 if not os.path.exists(MODEL_PATH):
     st.info("📦 Downloading model from Google Drive...")
-    file_id = "1Pf9Ruw-Lm2tX79vK6IxtbL6QBInw_gBB" 
+    file_id = "18O0SvhxoP1hCWkRUPUKsDR1E2bCPLVMR" 
     url = f"https://drive.google.com/uc?id={file_id}"
     gdown.download(url, MODEL_PATH, quiet=False)
 
