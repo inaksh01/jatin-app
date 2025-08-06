@@ -1,9 +1,10 @@
-streamlit-webrtc
-ultralytics>=8.0.0
-numpy>=1.23.0
-Pillow>=9.0.0
-gdown>=4.7.1
-opencv-python>=4.7.0
-streamlit>=1.28.0
 python-multipart
-pip install --upgrade pip
+streamlit==1.33.0
+ultralytics==8.1.27
+streamlit-webrtc==0.45.1
+opencv-python-headless==4.8.1.78
+Pillow==10.3.0
+gdown==5.2.0
+av==10.0.0
+numpy==1.26.4
+
