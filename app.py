@@ -7,6 +7,8 @@ import gdown
 import tempfile
 import cv2
 from io import BytesIO
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
+import av
 
 # 📥 Download model from Google Drive if not present
 MODEL_PATH = "best.pt"
@@ -30,47 +32,67 @@ except Exception as e:
 # 🧠 App UI
 st.set_page_config(page_title="HackByte Detector", layout="centered")
 st.title("🚀 HackByte Object Detector")
-st.markdown("Upload an image to detect space station objects with high precision.")
+st.markdown("Upload an image or use your webcam to detect space station objects with high precision.")
 
-# 📷 Image Upload
-uploaded_file = st.file_uploader("📁 Choose an image", type=["jpg", "jpeg", "png", "webp"])
+# 📷 Mode selector
+mode = st.radio("Choose input mode", ["📁 Upload Image", "🎥 Use Webcam"])
 
-if uploaded_file:
-    try:
-        image = Image.open(uploaded_file).convert("RGB")
-        st.image(image, caption="🖼️ Uploaded Image", use_container_width=True)
+# ========================================
+# 📁 IMAGE UPLOAD
+# ========================================
+if mode == "📁 Upload Image":
+    uploaded_file = st.file_uploader("Choose an image", type=["jpg", "jpeg", "png", "webp"])
 
-        # 💾 Save image temporarily
-        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
-            image.save(tmp.name)
-            image_path = tmp.name
+    if uploaded_file:
+        try:
+            image = Image.open(uploaded_file).convert("RGB")
+            st.image(image, caption="🖼️ Uploaded Image", use_container_width=True)
 
-        # 🔍 Run detection
-        with st.spinner("🔍 Detecting objects..."):
-            results = model.predict(image_path)
+            with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+                image.save(tmp.name)
+                image_path = tmp.name
 
-        # 🖼️ Show annotated image(s)
-        for r in results:
-            annotated_img = r.plot()
-            st.image(annotated_img, caption="✅ Detections", use_column_width=True)
+            with st.spinner("🔍 Detecting objects..."):
+                results = model.predict(image_path)
 
-            # 💾 Download button for annotated image
-            is_success, buffer = cv2.imencode(".jpg", annotated_img)
-            if is_success:
-                st.download_button(
-                    label="📥 Download Annotated Image",
-                    data=BytesIO(buffer.tobytes()),
-                    file_name="detection_result.jpg",
-                    mime="image/jpeg"
-                )
+            for r in results:
+                annotated_img = r.plot()
+                st.image(annotated_img, caption="✅ Detections", use_column_width=True)
 
-            # 📋 Show detection info
-            with st.expander("🔍 View Detection Info"):
-                for box in r.boxes.data.tolist():
-                    cls_id = int(box[5])
-                    conf = float(box[4])
-                    label = model.names.get(cls_id, f"Class {cls_id}")
-                    st.write(f"→ **{label}** ({conf:.2f})")
+                is_success, buffer = cv2.imencode(".jpg", annotated_img)
+                if is_success:
+                    st.download_button(
+                        label="📥 Download Annotated Image",
+                        data=BytesIO(buffer.tobytes()),
+                        file_name="detection_result.jpg",
+                        mime="image/jpeg"
+                    )
 
-    except Exception as e:
-        st.error(f"❌ Error processing image: {e}")
+                with st.expander("🔍 View Detection Info"):
+                    for box in r.boxes.data.tolist():
+                        cls_id = int(box[5])
+                        conf = float(box[4])
+                        label = model.names.get(cls_id, f"Class {cls_id}")
+                        st.write(f"→ **{label}** ({conf:.2f})")
+
+        except Exception as e:
+            st.error(f"❌ Error processing image: {e}")
+
+# ========================================
+# 🎥 WEBCAM DETECTION
+# ========================================
+elif mode == "🎥 Use Webcam":
+
+    class YOLOWebcamDetector(VideoTransformerBase):
+        def transform(self, frame):
+            img = frame.to_ndarray(format="bgr24")
+            results = model.predict(img, verbose=False)
+            annotated = results[0].plot()
+            return annotated
+
+    st.info("🔴 Allow webcam access to start real-time detection.")
+    webrtc_streamer(
+        key="yolo-webcam",
+        video_transformer_factory=YOLOWebcamDetector,
+        media_stream_constraints={"video": True, "audio": False}
+    )
