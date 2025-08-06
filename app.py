@@ -18,6 +18,7 @@ if not os.path.exists(MODEL_PATH):
     url = f"https://drive.google.com/uc?id={file_id}"
     gdown.download(url, MODEL_PATH, quiet=False)
 
+
 # 🧠 Load YOLOv8 model with caching
 @st.cache_resource
 def load_model(path):
@@ -89,6 +90,16 @@ elif mode == "🎥 Use Webcam":
             results = model.predict(img, verbose=False)
             annotated = results[0].plot()
             return annotated
+
+webrtc_streamer(
+    key="yolo-webcam",
+    video_transformer_factory=YOLOWebcamDetector,
+    rtc_configuration={
+        "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+    },
+    media_stream_constraints={"video": True, "audio": False}
+)
+
 
     st.info("🔴 Allow webcam access to start real-time detection.")
     webrtc_streamer(
