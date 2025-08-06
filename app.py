@@ -100,3 +100,4 @@ elif mode == "🎥 Use Webcam":
         },
         media_stream_constraints={"video": True, "audio": False}
     )
+
