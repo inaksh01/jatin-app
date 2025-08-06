@@ -83,29 +83,26 @@ if mode == "📁 Upload Image":
 # ========================================
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 
-class YOLOWebcamDetector(VideoProcessorBase):
-    def recv(self, frame):
-        img = frame.to_ndarray(format="bgr24")
-        results = model.predict(img, verbose=False)
-        annotated = results[0].plot()
-        return av.VideoFrame.from_ndarray(annotated, format="bgr24")
+elif mode == "🎥 Use Webcam":
 
-webrtc_streamer(
-    key="yolo-webcam",
-    video_processor_factory=YOLOWebcamDetector,
-    rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
-    media_stream_constraints={"video": True, "audio": False}
-)
-
+    class YOLOWebcamDetector(VideoProcessorBase):
+        def recv(self, frame):
+            try:
+                img = frame.to_ndarray(format="bgr24")
+                results = model.predict(img, verbose=False)
+                annotated = results[0].plot()
+                return av.VideoFrame.from_ndarray(annotated, format="bgr24")
+            except Exception as e:
+                print(f"[ERROR] Webcam frame error: {e}")
+                return frame
 
     st.info("🔴 Allow webcam access to start real-time detection.")
 
     webrtc_streamer(
         key="yolo-webcam",
-        video_transformer_factory=YOLOWebcamDetector,
-        rtc_configuration={
-            "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
-        },
+        video_processor_factory=YOLOWebcamDetector,
+        rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
         media_stream_constraints={"video": True, "audio": False}
     )
+
 
