@@ -14,10 +14,9 @@ import av
 MODEL_PATH = "best.pt"
 if not os.path.exists(MODEL_PATH):
     st.info("📦 Downloading model from Google Drive...")
-    file_id = "18O0SvhxoP1hCWkRUPUKsDR1E2bCPLVMR" 
+    file_id = "18O0SvhxoP1hCWkRUPUKsDR1E2bCPLVMR"
     url = f"https://drive.google.com/uc?id={file_id}"
     gdown.download(url, MODEL_PATH, quiet=False)
-
 
 # 🧠 Load YOLOv8 model with caching
 @st.cache_resource
@@ -58,7 +57,7 @@ if mode == "📁 Upload Image":
 
             for r in results:
                 annotated_img = r.plot()
-                st.image(annotated_img, caption="✅ Detections", use_column_width=True)
+                st.image(annotated_img, caption="✅ Detections", use_container_width=True)
 
                 is_success, buffer = cv2.imencode(".jpg", annotated_img)
                 if is_success:
@@ -91,19 +90,13 @@ elif mode == "🎥 Use Webcam":
             annotated = results[0].plot()
             return annotated
 
-webrtc_streamer(
-    key="yolo-webcam",
-    video_transformer_factory=YOLOWebcamDetector,
-    rtc_configuration={
-        "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
-    },
-    media_stream_constraints={"video": True, "audio": False}
-)
-
-
     st.info("🔴 Allow webcam access to start real-time detection.")
+
     webrtc_streamer(
         key="yolo-webcam",
         video_transformer_factory=YOLOWebcamDetector,
+        rtc_configuration={
+            "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+        },
         media_stream_constraints={"video": True, "audio": False}
     )
