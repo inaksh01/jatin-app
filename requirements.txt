@@ -7,4 +7,3 @@ opencv-python>=4.7.0
 streamlit>=1.28.0
 python-multipart
 pip install --upgrade pip
-pip install streamlit streamlit-webrtc ultralytics opencv-python-headless pillow gdown av
