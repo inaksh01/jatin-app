@@ -81,14 +81,22 @@ if mode == "📁 Upload Image":
 # ========================================
 # 🎥 WEBCAM DETECTION
 # ========================================
-elif mode == "🎥 Use Webcam":
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 
-    class YOLOWebcamDetector(VideoTransformerBase):
-        def transform(self, frame):
-            img = frame.to_ndarray(format="bgr24")
-            results = model.predict(img, verbose=False)
-            annotated = results[0].plot()
-            return annotated
+class YOLOWebcamDetector(VideoProcessorBase):
+    def recv(self, frame):
+        img = frame.to_ndarray(format="bgr24")
+        results = model.predict(img, verbose=False)
+        annotated = results[0].plot()
+        return av.VideoFrame.from_ndarray(annotated, format="bgr24")
+
+webrtc_streamer(
+    key="yolo-webcam",
+    video_processor_factory=YOLOWebcamDetector,
+    rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+    media_stream_constraints={"video": True, "audio": False}
+)
+
 
     st.info("🔴 Allow webcam access to start real-time detection.")
 
